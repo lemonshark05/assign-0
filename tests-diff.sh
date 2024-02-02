@@ -1,16 +1,24 @@
-TEST_DIR="/test"
+#!/bin/bash
 
-OUTPUT_FILE="my-stats"
+TEST_DIR="./tests"
+OUTPUT_DIR="my-results"
 
-# Clear the output file if it already exists
-> "$OUTPUT_FILE"
+mkdir -p "$OUTPUT_DIR"
 
 # Loop through each .lir file in the directory
 for file in "$TEST_DIR"/*.lir; do
+    filename=$(basename "${file%.lir}")
+    output_dir="$OUTPUT_DIR/$filename"
 
-    json_file="${file%.lir}.lir.json" OUTPUT_FILE
-    ./run-stats.sh "$file" "$json_file" >> "$OUTPUT_FILE"
+    mkdir -p "$output_dir"
+
+    json_file="$output_dir/${filename}.lir.json"
     stats_file="${file%.lir}.stats"
-    diff -wp "$OUTPUT_FILE" "$stats_file"
-    
+    output_stats="$output_dir/my-$filename"
+    diff_output="$output_dir/diff.txt"
+
+    ./run-stats.sh "$file" "$json_file" > "$output_stats"
+    diff -wp "$output_stats" "$stats_file" > "$diff_output"
+
+    echo "Processed $file"
 done
