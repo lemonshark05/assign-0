@@ -15,15 +15,6 @@ class Function:
         self.local_variables = []
         self.basic_blocks = []
 
-    def add_basic_block(self, block):
-        self.basic_blocks.append(block)
-
-    def add_parameter(self, param):
-        self.parameters.append(param)
-
-    def add_local_variable(self, var):
-        self.local_variables.append(var)
-
 # Init
 num_struct_fields = 0
 num_functions_with_return = 0
@@ -72,6 +63,22 @@ def parse_struct(line):
 
 def parse_extern_function(line):   
     pass
+# Because there are some commas inside the ()
+def replace_commas(input_string, old_char=',', new_char='|'):
+    level = 0
+    output = []
+
+    for char in input_string:
+        if char == '(':
+            level += 1
+        elif char == ')':
+            level -= 1
+        elif char == old_char and level > 0:
+            char = new_char
+
+        output.append(char)
+
+    return ''.join(output)
 
 def parse_function_content(line):
     global num_local_variables, num_basic_blocks, num_instructions, num_terminals
@@ -80,11 +87,10 @@ def parse_function_content(line):
     terminal_pattern = re.compile(r'\$(branch|jump|ret|call_dir|call_idr)')
 
     if local_var_match:
-        all_vars = local_var_match.group(1)
+        all_vars = replace_commas(local_var_match.group(1))
         vars = all_vars.split(',')
         for var in vars:
-            if '&(' in var and '->' in var:
-                print(var)
+            # print(var)
             if ':' in var:
                 num_local_variables += 1
                 var_type = var.split(':')[1].strip()
@@ -116,8 +122,8 @@ def parse_function(line):
 def parse_global_line(line):
     global_line_match = re.match(r'(\w+):\s*(&?[\w&() ->]+)', line)
     if global_line_match:
-        if line.__contains__('&(') and line.__contains__('->'):
-            print(line)
+        # if line.__contains__('&(') and line.__contains__('->'):
+            # print(line)
         var_type = global_line_match.group(2)
         count_variable_types(var_type)
 
